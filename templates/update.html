@@ -22,10 +22,10 @@
         <div class="bg-white w-full m-6 lg:w-1/2 rounded-lg shadow-lg p-6">
             <form method="POST">
                 <div class="flex flex-col gap-3">
-                    <h4 class="text-2xl font-sans text-blue-900 font-semibold p-3">Betrag hinzufügen:</h4>
+                    <h4 class="font-sans font-semibold">Update Record</h4>
                     {{ form.hidden_tag() }}
-                    {{ form.record_in(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", placeholder="Betrag") }}
-                    {{ form.time(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", type="date") }}
+                    {{ form.record_in(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", placeholder="Betrag", value=toUpdate.record) }}
+                    {{ form.time(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", type="date", value=toUpdate.time) }}
                     <div>
                     {{ form.submit(class="py-3 px-5 bg-blue-600 text-white rounded-lg shadow-md font-semibold") }}
                     </div>
