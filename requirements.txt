@@ -84,7 +84,7 @@ termcolor==1.1.0
 toml==0.10.2
 torrequest==0.1.0
 uritemplate==3.0.1
-urllib3==1.26.4
+urllib3==1.26.5
 virtualenv==20.6.0
 Werkzeug==1.0.1
 whichcraft==0.6.1
