@@ -22,14 +22,35 @@
         <div class="bg-white w-full m-6 lg:w-1/2 rounded-lg shadow-lg p-6">
             <form method="POST">
                 <div class="flex flex-col gap-3">
-                    <h4 class="font-sans font-semibold">Update Record</h4>
+                    <h4 class="text-2xl font-sans text-blue-900 font-semibold p-3">Betrag hinzufügen:</h4>
                     {{ form.hidden_tag() }}
-                    {{ form.record_in(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", placeholder="Betrag", value=toUpdate.record) }}
-                    {{ form.time(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", type="date", value=toUpdate.time) }}
-                    <div>
+                    {{ form.record_in(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", value=toUpdate.record, placeholder="Betrag") }}
+                    {% if toUpdate.operator == "+" %}
+                    <div class="flex items-center gap-3 ml-5 font-semibold mt-3">
+                        {{ form.operator(type="radio", value="+", class="transform scale-150", checked='true') }}
+                        <p>Profit</p>
+                    </div>
+                    <div class="flex items-center gap-3 ml-5 font-semibold mb-3">
+                        {{ form.operator(type="radio", value="-", class="transform scale-150 checked:bg-red-600") }}
+                        <p>Verlust</p>
+                    </div>
+                    {% else %}
+                    <div class="flex items-center gap-3 ml-5 font-semibold mt-3">
+                        {{ form.operator(type="radio", value="+", class="transform scale-150") }}
+                        <p>Profit</p>
+                    </div>
+                    <div class="flex items-center gap-3 ml-5 font-semibold mb-3">
+                        {{ form.operator(type="radio", value="-", class="transform scale-150 checked:bg-red-600", checked='true') }}
+                        <p>Verlust</p>
+                    </div>
+                    {% endif %}
+                    {{ form.time(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", type="date", value="toUppdate.time") }}
+                    <div class="flex gap-3 items-center">
                     {{ form.submit(class="py-3 px-5 bg-blue-600 text-white rounded-lg shadow-md font-semibold") }}
+                 
                     </div>
                 </div>
+            </form>
             </form>
         </div>
     </div>

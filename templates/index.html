@@ -5,15 +5,30 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
     <title>Document</title>
 </head>
+<style>
+ 
+</style>
+
 <body class="bg-blue-50">
     <div class="flex justify-between items-center p-6">
         <h4 class="text-3xl font-bold text-blue-900">CSN Projekt</h4>
-        <div class="flex">
+        <div class="flex gap-3">
             <button class="py-3 px-5 bg-blue-600 text-white rounded-lg shadow-md font-semibold">
                 <a href="{{url_for('history')}}">
                     Datenverlauf
+                </a>
+            </button>
+            <button class="py-3 px-5 bg-blue-600 text-white rounded-lg font-semibold">
+                <a href="{{url_for('index')}}">
+                   <div class="flex gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 stroke-current text-white" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                      </svg>
+                      <p class="text-white rounded-lg  font-semibold">Startseite</p>
+                   </div>
                 </a>
             </button>
         </div>
@@ -25,6 +40,14 @@
                     <h4 class="text-2xl font-sans text-blue-900 font-semibold p-3">Betrag hinzufügen:</h4>
                     {{ form.hidden_tag() }}
                     {{ form.record_in(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", placeholder="Betrag") }}
+                    <div class="flex items-center gap-3 ml-5 font-semibold mt-3">
+                        {{ form.operator(type="radio", value="+", class="transform scale-150") }}
+                        <p>Profit</p>
+                    </div>
+                    <div class="flex items-center gap-3 ml-5 font-semibold mb-3">
+                        {{ form.operator(type="radio", value="-", class="transform scale-150 checked:bg-red-600") }}
+                        <p>Verlust</p>
+                    </div>
                     {{ form.time(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", type="date") }}
                     <div>
                     {{ form.submit(class="py-3 px-5 bg-blue-600 text-white rounded-lg shadow-md font-semibold") }}

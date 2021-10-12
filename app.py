@@ -1,3 +1,4 @@
+import operator
 from flask import Flask, render_template, url_for, redirect
 from flask.globals import request
 from flask.helpers import flash
@@ -17,33 +18,37 @@ db = SQLAlchemy(app)
 class records(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     record = db.Column(db.String, nullable=False)
+    operator = db.Column(db.String, nullable=False)
     time = db.Column(db.String, nullable=False)
 
 #from model (testing)
 class record_submit(FlaskForm):
     record_in = StringField(validators=[DataRequired()])
     time = StringField(validators=[DataRequired()])
+    operator = StringField(validators=[DataRequired()])
     submit = SubmitField("Daten hinzufügen.", validators=[DataRequired()])
 
 class recordToUpdate(FlaskForm):
     record_in = StringField(validators=[DataRequired()])
     time = StringField(validators=[DataRequired()])
+    operator = StringField(validators=[DataRequired()])
     submit = SubmitField("Betrag verändern", validators=[DataRequired()])
 
-@app.route("/", methods=['GET', 'POST'])
-def index():
+@app.route("/add", methods=['GET', 'POST'])
+def add():
     form = record_submit()
     recordToSubmit = None
     timeToSubmit = None
     #when submiting form
     if form.validate_on_submit():
         #db.add
-        toSubmit = records(record = form.record_in.data, time = form.time.data)
+        toSubmit = records(record = form.record_in.data, time = form.time.data, operator = form.operator.data)
         db.session.add(toSubmit)
         db.session.commit()
         #clearing froms
         form.record_in.data = ""
         form.time.data = ""
+        form.operator.data = ""
     return render_template("index.html", form = form)
 
 @app.route('/update/<id>', methods=['POST', 'GET'])
@@ -54,6 +59,7 @@ def update(id):
     if form.validate_on_submit():
         toUpdate.record = request.form['record_in']
         toUpdate.time = request.form['time']
+        toUpdate.operator = request.form['operator']
         try:
             db.session.commit()
             flash("Der Datensatz wurde erfolgreich aktualisiert.")
@@ -85,49 +91,64 @@ def history():
     allRecords = records.query.order_by()
     return render_template("history.html", allRecords = allRecords)
 
-@app.route("/graph")
-def graph():
+@app.route("/")
+def index():
     #sorting dates and appending to an array
     getDate = records.query.order_by()
     toAppend = []
     for n in getDate:
         toAppend.append(n.time)
-    def sorting(L):
-        splitup = L.split('-')
+    def sortingDates(Dates):
+        splitup = Dates.split('-')
         return splitup[2], splitup[1], splitup[0]
-    sortedArray = sorted(toAppend, key=sorting)
+    sortedArray = sorted(toAppend, key=sortingDates)
 
     #function to add up all records by id
-    def multiplyList(toAdd) :
-        result = 0
-        for x in toAdd:
-            result = result + x
-        return result
-    finalto = []
-    test = []
+    def addUp(array):
+        count = 0
+        for n in range(0, len(array)):
+            antiZero = n + 1
+            if antiZero % 2 == 0:
+                operator = array[n - 1]
+                if operator == "+":
+                    count = count + array[n]
+                else:
+                    count = count - array[n]
+        return count
+
+    sumArray = []
+    numCache = []
+    finalCache = []
     for t in range(0, len(sortedArray)):
         if t == 0:
             tofilter = records.query.filter_by(time = sortedArray[t])
             for n in tofilter:
-                test.append(int(n.record))
-            finalto.append(multiplyList(test))
-            test.clear()
+                finalCache.append(n.operator)
+                finalCache.append(int(n.record))
+                numCache.append(n.operator)
+                numCache.append(int(n.record))
+            sumArray.append(addUp(numCache))
+            numCache.clear()
             toCheck = sortedArray[t]
         if toCheck == sortedArray[t]:
             continue
         else:
             tofilter = records.query.filter_by(time = sortedArray[t])
             for n in tofilter:
-                test.append(int(n.record))
-            finalto.append(multiplyList(test))
-            test.clear()
+                finalCache.append(n.operator)
+                finalCache.append(int(n.record))
+                numCache.append(n.operator)
+                numCache.append(int(n.record))
+            sumArray.append(addUp(numCache))
+            numCache.clear()
             toCheck = sortedArray[t]
 
+    final = addUp(finalCache)
     databaseDataQuery = sortedArray
     databaseTrimVersion = list(dict.fromkeys(databaseDataQuery))
-    
-    final = multiplyList(finalto)
-    return render_template("graph.html", sortedArray = sortedArray, final = final, test = test, finalto = finalto, databaseTrimVersion = databaseTrimVersion)
+    allRecords = records.query.order_by()
+    return render_template("graph.html", sortedArray = sortedArray, sumArray = sumArray, databaseTrimVersion = 
+    databaseTrimVersion, allRecords = allRecords, final = final)
 
 
 if __name__ == "__main__":
