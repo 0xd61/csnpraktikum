@@ -9,40 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.4.1/chart.min.js" integrity="sha512-5vwN8yor2fFT9pgPS9p9R7AszYaNn0LkQElTXIsZFCL7ucT8zDCAqlQXDdaqgA1mZP47hdvztBMsIoFxq/FyyQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <title>Document</title>
 </head>
-<script type="text/javascript">
-    function loadChart(sort) {
-        $.ajax({
-            url:"/request/chart/"+sort,
-            type:"POST",
-            dataType: "json",
-            success: function(data){
-              $(list).replaceWith(data)  
-            }
-        });
-    }
-    function validateDealy(sort) {
-        if (document.getElementById('dealy').checked) {
-            loadChart(sort)
-        } else {
-            ;
-        }
-    }
-    function validateMonthly(sort) {
-        if (document.getElementById('monthly').checked) {
-            loadChart(sort)
-        } else {
-            ;
-        }
-    }
-    loadChart('dealy')
 
-    function toTest() {
-        var test = document.getElementById("month").value
-        loadChart(test)
-    }
-
-
-</script>
 <body class="bg-gradient-to-r from-blue-100 to-indigo-100">
     <div class="flex justify-between items-center p-6">
         <h4 class="text-3xl font-bold text-blue-900">CSN Projekt</h4>
@@ -53,16 +20,92 @@
     <div class="mx-auto lg:mx-36 grid grid-cols-6 gap-5 p-3">
         <div class="col-span-6 lg:col-span-5 flex flex-col gap-3 order-2 lg:order-1 bg-white rounded-lg p-3 lg:p-8 border shadow-lg">
             <div class="flex">
-                <button type="submit" class="p-3 bg-blue-600 rounded-l-lg " onclick="toTest()">
+                <button type="submit" class="p-3 bg-blue-600 rounded-l-lg " onclick="search()">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 stroke-current text-white " fill="none" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                 </button>
                 <input class="p-3 outline-none rounded-r-lg border border-blue-600" id="month" type="month">
             </div>
-            <div id="list">
+            <div id="error">
 
             </div>
+<div id="test">
+    <canvas id="myChart4"></canvas>
+</div>           
+<script>
+    
+
+    
+    var stringArray = []
+    var intArray = []
+    function startCanvas () {
+        $.ajax({
+            url:"/request/chart/daily",
+            type:"GET",
+            dataType: "json",
+            success: function(data){
+              intArray = data[1]
+              stringArray = data[2]
+              myChart.data.labels = stringArray
+              myChart.data.datasets[0].data = intArray
+              myChart.update();
+            
+            }
+        });
+    }
+    startCanvas ()
+    function request(sortOrder) {
+        $.ajax({
+            url:"/request/chart/"+sortOrder,
+            type:"GET",
+            dataType: "json",
+            success: function(data){
+              console.log(data)  
+              
+                intArray = data[1]
+                stringArray = data[2]
+                myChart.data.labels = stringArray
+                myChart.data.datasets[0].data = intArray
+                myChart.update();
+              
+            }
+        });
+    }
+    function search() {
+        var test = document.getElementById("month").value
+        request(test)
+    }
+
+    var ctx = document.getElementById('myChart4').getContext('2d');
+            var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+            labels: stringArray,
+            datasets: [{
+                label: 'Einnahme',
+                data: intArray,
+                
+                backgroundColor: [
+                    'rgba(102, 150, 255)'
+                ],
+                borderColor: [
+                    'rgba(37, 99, 235)',
+                ],
+                borderWidth: 3
+            }]
+        },
+        options: {
+  plugins: {
+    legend: {
+      display: false
+    }
+  }
+}
+    });
+    
+    
+</script>
 
             <div class="flex justify-between gap-3 items-center blur-lg">
                 {% if final < 0 %}
@@ -82,17 +125,17 @@
                           </svg>
                     </div>
                     <div class="flex items-center">
-                        <button onclick="loadChart('dealy')" class="daybutton bg-blue-600 p-3 text-white font-semibold hover:bg-blue-400">
+                        <button onclick="request('daily')" class="daybutton bg-blue-600 p-3 text-white font-semibold hover:bg-blue-400">
                             Täglich 
                         </button>
-                        <button onclick="loadChart('monthly')" class="rounded-r-lg bg-blue-600 p-3 text-white font-semibold hover:bg-blue-400">
+                        <button onclick="request('monthly')" class="rounded-r-lg bg-blue-600 p-3 text-white font-semibold hover:bg-blue-400">
                             Monatlich
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-span-6 lg:col-span-1 bg-white rounded-lg p-6 flex flex-row lg:flex-col gap-3 border shadow-lg">
+        <div class="col-span-6 lg:col-span-1 bg-white rounded-lg p-6 flex flex-row lg:flex-col jusit gap-3 border shadow-lg h-full">
             <div>
                 <button class="p-3">
                     <a href="{{url_for('add')}}">
@@ -119,6 +162,37 @@
                         
                     </a>
                 </button>
+            </div>
+            <hr>
+            <div>
+                <button class="p-3 rounded-lg ">
+                    <a href="{{url_for('download')}}">
+                        <div class="flex justify-center items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 stroke-current text-blue-600" fill="none" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              <p class="font-semibold text-blue-600">Download</p>
+                        </div>
+                        
+                    </a>
+                </button>
+            </div>
+            <hr>
+            <div class="hidden md:flex">
+                {% if current_user.is_authenticated %}
+                <button class="p-3 rounded-lg  ">
+                    <a href="{{url_for('logout')}}">
+                        <div class="flex justify-center items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 stroke-current text-blue-600" fill="none" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                              </svg>
+                              <p class="font-semibold text-blue-600">Ausloggen</p>
+                        </div>
+                        
+                    </a>
+                </button>
+                {% endif %}
+                
             </div>
             
         </div>

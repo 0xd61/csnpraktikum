@@ -1,18 +1,31 @@
 import operator
-from flask import Flask, render_template, url_for, redirect, jsonify
+from re import template
+from flask import Flask, render_template, url_for, redirect, jsonify, send_from_directory, render_template_string, send_file
 from flask.globals import request
 from flask.helpers import flash
 from flask_wtf import FlaskForm
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, Email
 from wtforms import StringField, IntegerField, SubmitField, FloatField
 from flask_sqlalchemy import SQLAlchemy
+from wtforms.widgets.core import Option
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_migrate import Migrate
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import numpy as np
+import os
 
 #flask, db, key config
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "admin4"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///csn_projekt_db"
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Password.query.get(int(user_id))
 
 #db.Model
 class records(db.Model):
@@ -22,7 +35,24 @@ class records(db.Model):
     operator = db.Column(db.String, nullable=False)
     time = db.Column(db.String, nullable=False)
 
-#from model (testing)
+class Password(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.String(200), nullable=False, unique=True)
+    password_hash = db.Column(db.String(128), nullable=False)
+
+    @property
+    def password(self):
+        raise AttributeError('Password is not a readable Attribute.')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+
+#form model (testing)
 class record_submit(FlaskForm):
     record_in = FloatField(validators=[DataRequired()])
     time = StringField(validators=[DataRequired()])
@@ -37,6 +67,12 @@ class recordToUpdate(FlaskForm):
     operator = StringField(validators=[DataRequired()])
     submit = SubmitField("Betrag verändern", validators=[DataRequired()])
 
+class login(FlaskForm):
+    email = StringField(validators=[DataRequired()])
+    password = StringField(validators=[DataRequired()])
+    submit = SubmitField("Login", validators=[DataRequired()])
+
+#function to calculate with operators
 def addUp(array):
         count = 0
         for n in range(0, len(array)):
@@ -49,11 +85,40 @@ def addUp(array):
                     count = count - float(array[n])
         return count
 
+#function for pythons sorted function.
 def sortingDates(Dates):
     splitup = Dates.split('-')
     return  splitup[0], splitup[1], splitup[2]
 
+
+@app.route('/login', methods = ['GET', 'POST'])
+def logging_in():    
+    form = login()
+    email = None
+    password = None
+    if form.validate_on_submit():
+        user = Password.query.filter_by(user= form.email.data).first()
+        if user:
+            a = check_password_hash(user.password_hash, form.password.data)
+            if a:
+                login_user(user)
+                return redirect(url_for('index'))
+
+
+    return render_template('login.html', form = form)
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    return redirect(url_for('logging_in'))
+
+@app.route('/logout', methods=['GET', 'POST'])
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+
 @app.route("/add", methods=['GET', 'POST'])
+@login_required
 def add():
     form = record_submit()
     recordToSubmit = None
@@ -71,6 +136,7 @@ def add():
     return render_template("add.html", form = form)
 
 @app.route('/update/<id>', methods=['POST', 'GET'])
+@login_required
 def update(id):
     form = recordToUpdate()
     check = id
@@ -92,6 +158,7 @@ def update(id):
         return render_template("update.html", form = form, check = check, toUpdate = toUpdate)
 
 @app.route('/delete/<id>', methods=['POST', 'GET'])
+@login_required
 def delete(id):
     form = record_submit()
     check = id
@@ -111,16 +178,17 @@ def delete(id):
 def updateChart(id):
     getDate = records.query.order_by()
     toAppend = []
+
     for n in getDate:
         toAppend.append(n.time)
-    sortedArray = sorted(toAppend, key=sortingDates)
+    sortedByDate = sorted(toAppend, key=sortingDates)
     #function to add up all records by id
     sumArray = []
     numCache = []
     finalCache = []
-    for t in range(0, len(sortedArray)):
-        if t == 0:
-            tofilter = records.query.filter_by(time = sortedArray[t])
+    for date in range(0, len(sortedByDate)):
+        if date == 0:
+            tofilter = records.query.filter_by(time = sortedByDate[date])
             for n in tofilter:
                 finalCache.append(n.operator)
                 finalCache.append(n.record)
@@ -128,11 +196,11 @@ def updateChart(id):
                 numCache.append(n.record)
             sumArray.append(addUp(numCache))
             numCache.clear()
-            toCheck = sortedArray[t]
-        if toCheck == sortedArray[t]:
+            toCheck = sortedByDate[date]
+        if toCheck == sortedByDate[date]:
             continue
         else:
-            tofilter = records.query.filter_by(time = sortedArray[t])
+            tofilter = records.query.filter_by(time = sortedByDate[date])
             for n in tofilter:
                 finalCache.append(n.operator)
                 finalCache.append(n.record)
@@ -140,14 +208,13 @@ def updateChart(id):
                 numCache.append(n.record)
             sumArray.append(addUp(numCache))
             numCache.clear()
-            toCheck = sortedArray[t]
+            toCheck = sortedByDate[date]
     final = addUp(finalCache)
-    databaseDataQuery = sortedArray
+    databaseDataQuery = sortedByDate
     databaseTrimVersion = list(dict.fromkeys(databaseDataQuery))
     allRecords = records.query.order_by()
-    if id == "dealy":
-        return jsonify('', render_template('db.html', sortedArray = sortedArray, sumArray = sumArray, databaseTrimVersion = 
-    databaseTrimVersion, allRecords = allRecords, final = final))
+    if id == "daily":
+        return jsonify(sortedByDate, sumArray, databaseTrimVersion)
     elif id == "monthly":
         #loop for monthly
         stringArray = databaseTrimVersion
@@ -171,7 +238,7 @@ def updateChart(id):
         intToAppend.append(sum)
         sumArray = intToAppend
         databaseTrimVersion = stringToAppend
-        return jsonify('', render_template('db.html', sortedArray = sortedArray, sumArray = sumArray, databaseTrimVersion = databaseTrimVersion, allRecords = allRecords, final = final))
+        return jsonify(sortedByDate, sumArray, databaseTrimVersion)
     else:
         monthQuery = []
         monthRecord = []
@@ -182,16 +249,30 @@ def updateChart(id):
         if monthQuery:
             databaseTrimVersion = monthQuery
             sumArray = monthRecord
-            return jsonify('', render_template("db.html", sortedArray = sortedArray, sumArray = sumArray, databaseTrimVersion = databaseTrimVersion, allRecords = allRecords, final = final))
+            return jsonify('', sumArray, databaseTrimVersion)
         else:
-            error = "No Record found!"
-            return jsonify('', render_template("error.html", error = error))
+            return jsonify("error")
 
+def recreadeCSV():
+    getDate = records.query.order_by()
+    rows = []
+    row = [] 
+    for dates in getDate:
+        rows.append([dates.id, dates.operator, dates.record, dates.time])
+    
+    with open('Projekt.csv', 'wb') as f:
+        np.savetxt(rows, delimiter =", ", fmt ='% s')
+
+   
 @app.route("/history")
 def history():
     allRecords = records.query.order_by()
     return render_template("history.html", allRecords = allRecords)
 
+@app.route('/getfile/Projekt.csv')
+def download():
+    recreadeCSV()
+    return send_file('Projekt.csv', as_attachment=True)
 
 
 @app.route("/", methods=['POST', 'GET'])
