@@ -1,5 +1,6 @@
 import operator
 from re import template
+import re
 from flask import Flask, render_template, url_for, redirect, jsonify, send_from_directory, render_template_string, send_file
 from flask.globals import request
 from flask.helpers import flash
@@ -15,9 +16,12 @@ import numpy as np
 import os
 
 #flask, db, key config
+
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "admin4"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///csn_projekt_db"
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 login_manager = LoginManager()
@@ -34,6 +38,10 @@ class records(db.Model):
     record = db.Column(db.String, nullable=False)
     operator = db.Column(db.String, nullable=False)
     time = db.Column(db.String, nullable=False)
+
+class seed(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    seed = db.Column(db.String, nullable=False)
 
 class Password(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -71,6 +79,10 @@ class login(FlaskForm):
     email = StringField(validators=[DataRequired()])
     password = StringField(validators=[DataRequired()])
     submit = SubmitField("Login", validators=[DataRequired()])
+
+class setting_form(FlaskForm):
+    seed_capital = IntegerField(validators=[DataRequired()])
+    submit = SubmitField("Ändern", validators=[DataRequired()])
 
 #function to calculate with operators
 def addUp(array):
@@ -116,6 +128,25 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+@app.route("/settings", methods=['GET', 'POST'])
+@login_required
+def user_settings():
+    form = setting_form()
+    seeds = seed.query.get(1)
+    #when submiting form
+    if form.validate_on_submit():
+        check = seed.query.filter_by(id = 1).first()
+        if check:
+            u = seed.query.get(1)
+            u.seed = form.seed_capital.data
+            db.session.commit()
+        else:
+            toSubmit = seed(seed = form.seed_capital.data)
+            db.session.add(toSubmit)
+            db.session.commit()
+            #clearing froms
+            form.seed_capital.data = ''
+    return render_template("settings.html", form = form, seeds = seeds)
 
 @app.route("/add", methods=['GET', 'POST'])
 @login_required
@@ -256,12 +287,21 @@ def updateChart(id):
 def recreadeCSV():
     getDate = records.query.order_by()
     rows = []
-    row = [] 
+    sortedDates = []
+    dbSorted = []
+    a = []
     for dates in getDate:
-        rows.append([dates.id, dates.operator, dates.record, dates.time])
+        rows.append(dates.time)
+    sortedDates = sorted(rows, key=sortingDates)
+    a = [[n] for n in sortedDates]
     
-    with open('Projekt.csv', 'wb') as f:
-        np.savetxt(rows, delimiter =", ", fmt ='% s')
+    for data in range(0, len(sortedDates)):
+        filter = records.query.filter_by(time = sortedDates[0])
+        sortedDates.pop(0)
+        a[0] = [filter[0].operator + str(filter[0].record), filter[0].title, filter[0].time]
+        dbSorted.append(a[0])
+        a.pop(0)
+    np.savetxt("allRecords.csv", dbSorted, delimiter =", ", fmt ='% s')
 
    
 @app.route("/history")
@@ -269,10 +309,11 @@ def history():
     allRecords = records.query.order_by()
     return render_template("history.html", allRecords = allRecords)
 
-@app.route('/getfile/Projekt.csv')
+
+@app.route('/getfile/allRecords.csv')
 def download():
     recreadeCSV()
-    return send_file('Projekt.csv', as_attachment=True)
+    return send_file("allRecords.csv", as_attachment=True)
 
 
 @app.route("/", methods=['POST', 'GET'])
@@ -282,9 +323,6 @@ def index():
     toAppend = []
     for n in getDate:
         toAppend.append(n.time)
-    def sortingDates(Dates):
-        splitup = Dates.split('-')
-        return splitup[2], splitup[1], splitup[0]
     sortedArray = sorted(toAppend, key=sortingDates)
 
     #function to add up all records by id
@@ -317,7 +355,9 @@ def index():
             numCache.clear()
             toCheck = sortedArray[t]
 
+    seeds = seed.query.get(1)
     final = addUp(finalCache)
+    final = final + int(seeds.seed)
     databaseDataQuery = sortedArray
     databaseTrimVersion = list(dict.fromkeys(databaseDataQuery))
     allRecords = records.query.order_by()

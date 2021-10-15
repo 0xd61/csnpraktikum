@@ -7,22 +7,15 @@
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
     <title>Document</title>
 </head>
-<body class="bg-blue-50">
+<body class="bg-blue-600">
     <div class="flex justify-between items-center p-6">
-        <h4 class="text-3xl font-bold text-blue-900">CSN Projekt</h4>
-        <div class="flex">
-            <button class="py-3 px-5 bg-blue-600 text-white rounded-lg shadow-md font-semibold">
-                <a href="{{url_for('history')}}">
-                    Datenverlauf
-                </a>
-            </button>
-        </div>
+        {% include 'header.html' %}
     </div>
     <div class="flex h-auto justify-center items-center">
         <div class="bg-white w-full m-6 lg:w-1/2 rounded-lg shadow-lg p-6">
             <form method="POST">
                 <div class="flex flex-col gap-3">
-                    <h4 class="text-2xl font-sans text-blue-900 font-semibold p-3">Betrag hinzufügen:</h4>
+                    <h4 class="text-2xl font-sans text-blue-600 font-bold p-3">Betrag hinzufügen:</h4>
                     {{ form.hidden_tag() }}
                     {{ form.title(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", placeholder="Titel", value=toUpdate.title) }}
                     {{ form.record_in(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", value=toUpdate.record, placeholder="Betrag") }}
