@@ -1,1 +1,2 @@
-print(n)
+@app.route('/test')
+def test():
