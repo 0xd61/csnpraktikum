@@ -20,22 +20,23 @@
     <div class="flex h-auto justify-center items-center">
         <div class="bg-white w-full m-6 lg:w-1/2 rounded-lg shadow-lg p-6">
             <form method="POST">
-                <div class="flex flex-col gap-3">
-                    <h4 class="text-2xl font-sans text-blue-600 font-bold p-3">Einloggen:</h4>
+                <div class="flex flex-col">
+                    <h4 class="text-2xl font-sans text-blue-600 font-bold p-3 mb-4">Einloggen:</h4>
                     {{ form.hidden_tag() }}
+                    <label class="ml-3 text-gray-500 font-light">E-Mail oder Benutzername</label>
                     {{ form.email(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", placeholder="Email") }}
+                    <label class="ml-3 text-gray-500 font-light mt-3">Password</label>
                     {{ form.password(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", placeholder="Password", type="password") }}
-                    <div class="flex">
+                    <div class="flex justify-between items-center mt-3">
                         {{ form.submit(class="py-3 px-5 bg-blue-600 text-white rounded-lg shadow-md font-semibold") }}
+                        <p class="ml-3 text-gray-500 font-light">Melde dich an, um Daten zu bearbeiten.</p>
                     </div>
                     
-                    <button>
-                      
-                    </button>
                     </div>
 
                 </div>
             </form>
+            
         </div>
     </div>
 </body>

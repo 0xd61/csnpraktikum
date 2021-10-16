@@ -81,7 +81,7 @@ class login(FlaskForm):
     submit = SubmitField("Login", validators=[DataRequired()])
 
 class setting_form(FlaskForm):
-    seed_capital = IntegerField(validators=[DataRequired()])
+    seed_capital = FloatField(validators=[DataRequired()])
     submit = SubmitField("Ändern", validators=[DataRequired()])
 
 #function to calculate with operators
@@ -97,11 +97,25 @@ def addUp(array):
                     count = count - float(array[n])
         return count
 
+def average(array, id):
+    averageIntake = []
+    averageSpending = []
+    for n in range(0, len(array)):
+        antiZero = n + 1
+        if antiZero % 2 == 0:
+            operator = array[n - 1]
+            if operator == "+":
+                averageIntake.append(array[n])
+            else:
+                averageSpending.append(array[n -1] + array[n])
+    if id == "in":
+        return averageIntake
+    else:
+        return averageSpending
 #function for pythons sorted function.
 def sortingDates(Dates):
     splitup = Dates.split('-')
     return  splitup[0], splitup[1], splitup[2]
-
 
 @app.route('/login', methods = ['GET', 'POST'])
 def logging_in():    
@@ -115,8 +129,6 @@ def logging_in():
             if a:
                 login_user(user)
                 return redirect(url_for('index'))
-
-
     return render_template('login.html', form = form)
 
 @login_manager.unauthorized_handler
@@ -135,10 +147,10 @@ def user_settings():
     seeds = seed.query.get(1)
     #when submiting form
     if form.validate_on_submit():
-        check = seed.query.filter_by(id = 1).first()
-        if check:
+        seedQuery = seed.query.filter_by(id = 1).first()
+        if seedQuery:
             u = seed.query.get(1)
-            u.seed = form.seed_capital.data
+            u.seed = float(form.seed_capital.data)
             db.session.commit()
         else:
             toSubmit = seed(seed = form.seed_capital.data)
@@ -203,18 +215,16 @@ def delete(id):
         flash("Error")
         return redirect(url_for('history'))
 
-
 #Database API for getting charts
 @app.route('/request/chart/<id>', methods=['POST', 'GET'])
 def updateChart(id):
     getDate = records.query.order_by()
     toAppend = []
-
     for n in getDate:
         toAppend.append(n.time)
     sortedByDate = sorted(toAppend, key=sortingDates)
     #function to add up all records by id
-    sumArray = []
+    differenceInnSums = []
     numCache = []
     finalCache = []
     for date in range(0, len(sortedByDate)):
@@ -225,7 +235,7 @@ def updateChart(id):
                 finalCache.append(n.record)
                 numCache.append(n.operator)
                 numCache.append(n.record)
-            sumArray.append(addUp(numCache))
+            differenceInnSums.append(addUp(numCache))
             numCache.clear()
             toCheck = sortedByDate[date]
         if toCheck == sortedByDate[date]:
@@ -237,50 +247,69 @@ def updateChart(id):
                 finalCache.append(n.record)
                 numCache.append(n.operator)
                 numCache.append(n.record)
-            sumArray.append(addUp(numCache))
+            differenceInnSums.append(addUp(numCache))
             numCache.clear()
             toCheck = sortedByDate[date]
+    averageIntake = average(finalCache, "in")
+    avargeSpending = average(finalCache, "out")
     final = addUp(finalCache)
+    seedQuery = seed.query.get(1)
+    try:
+        final = final + seedQuery.seed
+    except:
+        final = final 
     databaseDataQuery = sortedByDate
-    databaseTrimVersion = list(dict.fromkeys(databaseDataQuery))
+    Dates = list(dict.fromkeys(databaseDataQuery))
     allRecords = records.query.order_by()
     if id == "daily":
-        return jsonify(sortedByDate, sumArray, databaseTrimVersion)
+        return jsonify(sortedByDate, differenceInnSums, Dates)
     elif id == "monthly":
-        #loop for monthly
-        stringArray = databaseTrimVersion
-        intArray = sumArray
+        allDates = Dates
+        intArray = differenceInnSums
         stringToAppend = []
         intToAppend = []
-        sum = 0
-        for n in range(0, len(stringArray)):
+        finalSum = 0
+        for n in range(0, len(allDates)):
             if n == 0:
-                toCheck = stringArray[n][5:7]
-                sum = sum + float(intArray[n])
-                stringToAppend.append(stringArray[n][0:7])
-            elif stringArray[n][5:7] == toCheck:
-                sum = sum + float(intArray[n])
-            elif stringArray[n][5:7] != toCheck:
-                stringToAppend.append(stringArray[n][0:7])
-                intToAppend.append(sum)
-                sum = 0
-                toCheck = stringArray[n][5:7]
-                sum = sum + float(intArray[n])
-        intToAppend.append(sum)
-        sumArray = intToAppend
+                toCheck = allDates[n][5:7]
+                finalSum = finalSum + float(intArray[n])
+                stringToAppend.append(allDates[n][0:7])
+            elif allDates[n][5:7] == toCheck:
+                finalSum = finalSum + float(intArray[n])
+            elif allDates[n][5:7] != toCheck:
+                stringToAppend.append(allDates[n][0:7])
+                intToAppend.append(finalSum)
+                finalSum = 0
+                toCheck = allDates[n][5:7]
+                finalSum = finalSum + float(intArray[n])
+                finalSum = finalSum
+        intToAppend.append(finalSum)
+        differenceInnSums = intToAppend
         databaseTrimVersion = stringToAppend
-        return jsonify(sortedByDate, sumArray, databaseTrimVersion)
+        return jsonify(sortedByDate, differenceInnSums, databaseTrimVersion)
+    elif id == "finalSum":
+        return jsonify(final)
+    elif id == "avarge":
+        sum = 0
+        for n in averageIntake:
+            sum = sum + float(n)
+        aIntake = sum / len(averageIntake)
+        sum = 0
+        for n in avargeSpending:
+            sum = sum + float(n)
+        aSpending = sum / len(avargeSpending)
+        return jsonify(aIntake, aSpending)
     else:
         monthQuery = []
         monthRecord = []
-        for n in range(0, len(databaseTrimVersion)):
-            if databaseTrimVersion[n][0:7] == id:
-                monthQuery.append(databaseTrimVersion[n])
-                monthRecord.append(sumArray[n])
+        for n in range(0, len(Dates)):
+            if Dates[n][0:7] == id:
+                monthQuery.append(Dates[n])
+                monthRecord.append(differenceInnSums[n])
         if monthQuery:
-            databaseTrimVersion = monthQuery
-            sumArray = monthRecord
-            return jsonify('', sumArray, databaseTrimVersion)
+            Dates = monthQuery
+            differenceInnSums = monthRecord
+            return jsonify('', differenceInnSums, Dates)
         else:
             return jsonify("error")
 
@@ -303,66 +332,20 @@ def recreadeCSV():
         a.pop(0)
     np.savetxt("allRecords.csv", dbSorted, delimiter =", ", fmt ='% s')
 
-   
 @app.route("/history")
 def history():
     allRecords = records.query.order_by()
     return render_template("history.html", allRecords = allRecords)
-
 
 @app.route('/getfile/allRecords.csv')
 def download():
     recreadeCSV()
     return send_file("allRecords.csv", as_attachment=True)
 
-
 @app.route("/", methods=['POST', 'GET'])
 def index():
-    #sorting dates and appending to an array
-    getDate = records.query.order_by()
-    toAppend = []
-    for n in getDate:
-        toAppend.append(n.time)
-    sortedArray = sorted(toAppend, key=sortingDates)
-
-    #function to add up all records by id
-    
-
-    sumArray = []
-    numCache = []
-    finalCache = []
-    for t in range(0, len(sortedArray)):
-        if t == 0:
-            tofilter = records.query.filter_by(time = sortedArray[t])
-            for n in tofilter:
-                finalCache.append(n.operator)
-                finalCache.append(n.record)
-                numCache.append(n.operator)
-                numCache.append(n.record)
-            sumArray.append(addUp(numCache))
-            numCache.clear()
-            toCheck = sortedArray[t]
-        if toCheck == sortedArray[t]:
-            continue
-        else:
-            tofilter = records.query.filter_by(time = sortedArray[t])
-            for n in tofilter:
-                finalCache.append(n.operator)
-                finalCache.append(n.record)
-                numCache.append(n.operator)
-                numCache.append(n.record)
-            sumArray.append(addUp(numCache))
-            numCache.clear()
-            toCheck = sortedArray[t]
-
-    seeds = seed.query.get(1)
-    final = addUp(finalCache)
-    final = final + int(seeds.seed)
-    databaseDataQuery = sortedArray
-    databaseTrimVersion = list(dict.fromkeys(databaseDataQuery))
     allRecords = records.query.order_by()
-    return render_template("index.html", allRecords = allRecords, final = final)
-
+    return render_template("index.html", allRecords = allRecords)
 
 if __name__ == "__main__":
     app.run(debug=True, port=80)
