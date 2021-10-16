@@ -100,20 +100,43 @@
   }
 }
     });
+    $.ajax({
+            url:"/request/chart/finalSum",
+            type:"GET",
+            dataType: "json",
+            success: function(data){
+              console.log(data)  
+              $(final).replaceWith("Gesamt: " + data + "$");   
+              
+            }
+        });
+        $.ajax({
+            url:"/request/chart/avarge",
+            type:"GET",
+            dataType: "json",
+            success: function(data){
+              console.log(data)  
+              $(avargeIN).replaceWith("Ø Ausgaben: " + parseFloat(data[0]).toFixed(2) + "$");
+              $(avargeOUT).replaceWith("Ø Einahmen: " + parseFloat(data[1]).toFixed(2) + "$");   
+              
+            }
+        });
     
     
 </script>
 
             <div class="flex justify-between gap-3 items-center blur-lg">
-                {% if final < 0 %}
-                <div class="p-3 text-red-500 italic font-semibold">
-                    Gesamt: {{ final|round(1, 'floor') }}$
+                <div class="text-gray-500 font-bold p-3">
+                    <p id="final">test</p>
                 </div>
-                {% else %}
-                <div class="p-3 text-green-500 italic font-semibold">
-                    Gesamt: {{ final|round(1, 'floor') }}$
+                <div class="hidden xl:flex itmes-center gap-3">
+                    <div class="text-gray-500 font-light">
+                        <p id="avargeOUT"></p>
+                    </div>
+                    <div class="text-gray-500 font-light">
+                        <p id="avargeIN"></p>
+                    </div>
                 </div>
-                {% endif %}
                 
                 <div class="flex items-center">
                     <div class="bg-blue-600 rounded-l-lg p-3 daybutton-hover:bg-white">
