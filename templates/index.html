@@ -10,12 +10,9 @@
     <title>Document</title>
 </head>
 
-<body class="bg-gradient-to-r from-blue-100 to-indigo-100">
+<body class="bg-blue-600">
     <div class="flex justify-between items-center p-6">
-        <h4 class="text-3xl font-bold text-blue-900">CSN Projekt</h4>
-        <div class="hidden md:flex items-center rounded-lg">
-        </div>
-        
+        {% include 'header.html' %}
     </div>
     <div class="mx-auto lg:mx-36 grid grid-cols-6 gap-5 p-3">
         <div class="col-span-6 lg:col-span-5 flex flex-col gap-3 order-2 lg:order-1 bg-white rounded-lg p-3 lg:p-8 border shadow-lg">
@@ -25,7 +22,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                 </button>
-                <input class="p-3 outline-none rounded-r-lg border border-blue-600" id="month" type="month">
+                <input class="p-3  appearance-none outline-none rounded-r-lg border border-blue-600" id="month" type="month">
             </div>
             <div id="error">
 
@@ -125,79 +122,81 @@
                           </svg>
                     </div>
                     <div class="flex items-center">
-                        <button onclick="request('daily')" class="daybutton bg-blue-600 p-3 text-white font-semibold hover:bg-blue-400">
+                        <button onclick="request('daily')" class="daybutton transform hover:scale-105 bg-blue-600 p-3 text-white hover:text-blue-600 font-semibold hover:bg-white">
                             Täglich 
                         </button>
-                        <button onclick="request('monthly')" class="rounded-r-lg bg-blue-600 p-3 text-white font-semibold hover:bg-blue-400">
+                        <button onclick="request('monthly')" class="transform hover:scale-105 bg-blue-600 p-3 text-white hover:text-blue-600 font-semibold hover:bg-white rounded-r-lg">
                             Monatlich
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-span-6 lg:col-span-1 bg-white rounded-lg p-6 flex flex-row lg:flex-col jusit gap-3 border shadow-lg h-full">
-            <div>
-                <button class="p-3">
-                    <a href="{{url_for('add')}}">
-                        <div class="flex justify-center items-center gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 stroke-current text-blue-600" fill="none" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                              </svg>
-                              <p class="font-semibold text-blue-600">Hinzufügen</p>
-                        </div>
-                        
-                    </a>
-                </button>
+        <div class="col-span-6 lg:col-span-1 bg-white rounded-lg p-6 flex flex-row justify-between lg:flex-col gap-3 border shadow-lg h-full">
+            <div class="flex flex-row gap-3 lg:flex-col">
+                <div>
+                    <button class="p-3">
+                        <a href="{{url_for('add')}}">
+                            <div class="flex justify-center items-center gap-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 stroke-current text-blue-600" fill="none" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                  <p class="font-semibold text-blue-600">Hinzufügen</p>
+                            </div>
+                            
+                        </a>
+                    </button>
+                </div>
+                <hr>
+                <div>
+                    <button class="p-3 rounded-lg ">
+                        <a href="{{url_for('history')}}">
+                            <div class="flex justify-center items-center gap-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 stroke-current text-blue-600" fill="none" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                  </svg>
+                                  <p class="font-semibold text-blue-600">Verlauf</p>
+                            </div>
+                            
+                        </a>
+                    </button>
+                </div>
+                <hr>
+                <div class="hidden md:flex">
+                    <button class="p-3 rounded-lg ">
+                        <a href="{{url_for('download')}}">
+                            <div class="flex justify-center items-center gap-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 stroke-current text-blue-600" fill="none" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                  </svg>
+                                  <p class="font-semibold text-blue-600">Download</p>
+                            </div>
+                            
+                        </a>
+                    </button>
+                </div>
             </div>
-            <hr>
-            <div>
+            <div class="hidden md:flex order-4 justify-self-start">
                 <button class="p-3 rounded-lg ">
-                    <a href="{{url_for('history')}}">
+                    <a href="{{url_for('user_settings')}}">
                         <div class="flex justify-center items-center gap-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 stroke-current text-blue-600" fill="none" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                               </svg>
-                              <p class="font-semibold text-blue-600">Verlauf</p>
+                              <p class="font-semibold text-blue-600">Einstellungen</p>
                         </div>
                         
                     </a>
                 </button>
             </div>
-            <hr>
-            <div>
-                <button class="p-3 rounded-lg ">
-                    <a href="{{url_for('download')}}">
-                        <div class="flex justify-center items-center gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 stroke-current text-blue-600" fill="none" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                              </svg>
-                              <p class="font-semibold text-blue-600">Download</p>
-                        </div>
-                        
-                    </a>
-                </button>
-            </div>
-            <hr>
             <div class="hidden md:flex">
-                {% if current_user.is_authenticated %}
-                <button class="p-3 rounded-lg  ">
-                    <a href="{{url_for('logout')}}">
-                        <div class="flex justify-center items-center gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 stroke-current text-blue-600" fill="none" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                              </svg>
-                              <p class="font-semibold text-blue-600">Ausloggen</p>
-                        </div>
-                        
-                    </a>
-                </button>
-                {% endif %}
+                
                 
             </div>
             
         </div>
-        <div class="col-span-6 order-3 bg-white rounded-lg p-6 flex flex-col gap-3 border shadow-lg">
-            <h4 class="text-2xl font-sans text-blue-900 font-semibold p-3">Vor kurzem hinzugefügt:</h4>
+        <div class="col-span-6 order-4 bg-white rounded-lg p-6 flex flex-col gap-3 border shadow-lg">
+            <h4 class="text-2xl font-sans text-blue-600 font-bold p-3">Vor kurzem hinzugefügt:</h4>
             {% for n in allRecords|sort(attribute="time", reverse=True) %}
             {% if loop.index > 5 %}
             

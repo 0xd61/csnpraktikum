@@ -1,0 +1,16 @@
+<a class="text-3xl font-bold text-white" href="{{url_for('index')}}">CSN Projekt</a>
+<div class="flex gap-3">
+    {% if current_user.is_authenticated %}
+                <button class="p-3 rounded-lg  ">
+                    <a href="{{url_for('logout')}}">
+                        <div class="flex justify-center items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 stroke-current text-white" fill="none" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                              </svg>
+                              <p class="font-semibold text-white">Ausloggen</p>
+                        </div>
+                        
+                    </a>
+                </button>
+    {% endif %}
+</div>

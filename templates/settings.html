@@ -21,19 +21,18 @@
         <div class="bg-white w-full m-6 lg:w-1/2 rounded-lg shadow-lg p-6">
             <form method="POST">
                 <div class="flex flex-col gap-3">
-                    <h4 class="text-2xl font-sans text-blue-600 font-bold p-3">Einloggen:</h4>
+                    <h4 class="text-2xl font-sans text-blue-600 font-bold p-3">Einstellungen</h4>
                     {{ form.hidden_tag() }}
-                    {{ form.email(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", placeholder="Email") }}
-                    {{ form.password(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", placeholder="Password", type="password") }}
-                    <div class="flex">
-                        {{ form.submit(class="py-3 px-5 bg-blue-600 text-white rounded-lg shadow-md font-semibold") }}
+                    {% if seeds.seed %}
+                    {{ form.seed_capital(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", placeholder="Enter Seed", value=seeds.seed) }}
+                    {% else %}
+                    {{ form.seed_capital(class="p-5 border-2 focus:border-blue-600 rounded-lg outline-none shadow-md rounded-sm focus:border", placeholder="Enter Seed") }}
+                    {% endif %}
+                    {{ form.submit(class="py-3 px-5 bg-blue-600 text-white rounded-lg shadow-md font-semibold") }}
+                    </div>
+                 
                     </div>
                     
-                    <button>
-                      
-                    </button>
-                    </div>
-
                 </div>
             </form>
         </div>
